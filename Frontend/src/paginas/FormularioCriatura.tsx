@@ -5,9 +5,16 @@
  */
 
 import { FormEvent, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { crearCriatura, actualizarCriatura, obtenerCriaturaPorId } from "../api/criaturasApi";
 import { CriaturaFormulario, TIPOS_CRIATURA, ESTADOS_INVESTIGACION } from "../tipos";
+import {
+  CLASE_BOTON_PRIMARIO,
+  CLASE_INPUT,
+  CLASE_LABEL,
+  ETIQUETAS_ESTADO,
+  ETIQUETAS_TIPO,
+} from "../componentes/visual";
 
 const FORM_VACIO: CriaturaFormulario = {
   nombre: "",
@@ -78,56 +85,104 @@ export function FormularioCriatura() {
     }
   }
 
-  if (cargando) return <p>Cargando datos de la criatura...</p>;
+  if (cargando) return <p className="text-center text-sm text-zinc-400">Cargando datos de la criatura...</p>;
 
   return (
-    <div>
-      <h1>{esEdicion ? "Editar criatura" : "Registrar criatura nueva"}</h1>
+    <div className="mx-auto max-w-xl">
+      <Link to="/" className="mb-8 inline-block text-sm text-zinc-400 transition hover:text-orange-300">
+        ← Volver a la lista
+      </Link>
 
-      {error && <p>Error: {error}</p>}
+      <p className="mb-2 text-xs font-semibold uppercase tracking-[0.28em] text-orange-400">
+        {esEdicion ? "Actualizar ficha" : "Nueva entrada"}
+      </p>
+      <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+        {esEdicion ? "Editar criatura" : "Registrar criatura nueva"}
+      </h1>
+      <p className="mt-2 mb-8 text-sm text-zinc-400">
+        Completa los datos de campo. El tipo determina cómo se cataloga en el archivo.
+      </p>
 
-      <form onSubmit={manejarEnvio}>
-        <p>
-          <label htmlFor="nombre">Nombre: </label>
-          <br />
+      {error && (
+        <p className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          Error: {error}
+        </p>
+      )}
+
+      <form
+        onSubmit={manejarEnvio}
+        className="space-y-5 rounded-2xl border border-zinc-800 bg-zinc-900 p-6 shadow-[0_0_40px_-24px_rgba(249,115,22,0.45)]"
+      >
+        <div>
+          <label htmlFor="nombre" className={CLASE_LABEL}>
+            Nombre
+          </label>
           <input
             id="nombre"
             type="text"
             value={form.nombre}
             onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+            className={CLASE_INPUT}
+            placeholder="Ej. Wendigo del parque"
           />
-        </p>
+        </div>
 
-        <p>
-          <label htmlFor="tipo">Tipo: </label>
-          <br />
-          <select
-            id="tipo"
-            value={form.tipo}
-            onChange={(e) => setForm({ ...form, tipo: e.target.value as CriaturaFormulario["tipo"] })}
-          >
-            {TIPOS_CRIATURA.map((tipo) => (
-              <option key={tipo} value={tipo}>
-                {tipo}
-              </option>
-            ))}
-          </select>
-        </p>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label htmlFor="tipo" className={CLASE_LABEL}>
+              Tipo
+            </label>
+            <select
+              id="tipo"
+              value={form.tipo}
+              onChange={(e) => setForm({ ...form, tipo: e.target.value as CriaturaFormulario["tipo"] })}
+              className={CLASE_INPUT}
+            >
+              {TIPOS_CRIATURA.map((tipo) => (
+                <option key={tipo} value={tipo}>
+                  {ETIQUETAS_TIPO[tipo]}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <p>
-          <label htmlFor="habilidades">Habilidades (separadas por comas): </label>
-          <br />
+          <div>
+            <label htmlFor="estado" className={CLASE_LABEL}>
+              Estado
+            </label>
+            <select
+              id="estado"
+              value={form.estado}
+              onChange={(e) => setForm({ ...form, estado: e.target.value as CriaturaFormulario["estado"] })}
+              className={CLASE_INPUT}
+            >
+              {ESTADOS_INVESTIGACION.map((estado) => (
+                <option key={estado} value={estado}>
+                  {ETIQUETAS_ESTADO[estado]}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="habilidades" className={CLASE_LABEL}>
+            Habilidades (separadas por comas)
+          </label>
           <input
             id="habilidades"
             type="text"
             value={habilidadesTexto}
             onChange={(e) => setHabilidadesTexto(e.target.value)}
+            className={CLASE_INPUT}
+            placeholder="invisibilidad, vuelo, grito sónico"
           />
-        </p>
+        </div>
 
-        <p>
-          <label htmlFor="nivelPeligro">Nivel de peligro (1-10): </label>
-          <br />
+        <div>
+          <label htmlFor="nivelPeligro" className={CLASE_LABEL}>
+            Nivel de peligro (1-10)
+          </label>
           <input
             id="nivelPeligro"
             type="number"
@@ -135,30 +190,15 @@ export function FormularioCriatura() {
             max={10}
             value={form.nivelPeligro}
             onChange={(e) => setForm({ ...form, nivelPeligro: Number(e.target.value) })}
+            className={CLASE_INPUT}
           />
-        </p>
+        </div>
 
-        <p>
-          <label htmlFor="estado">Estado: </label>
-          <br />
-          <select
-            id="estado"
-            value={form.estado}
-            onChange={(e) => setForm({ ...form, estado: e.target.value as CriaturaFormulario["estado"] })}
-          >
-            {ESTADOS_INVESTIGACION.map((estado) => (
-              <option key={estado} value={estado}>
-                {estado}
-              </option>
-            ))}
-          </select>
-        </p>
-
-        <p>
-          <button type="submit" disabled={guardando}>
+        <div className="pt-2">
+          <button type="submit" disabled={guardando} className={`${CLASE_BOTON_PRIMARIO} w-full`}>
             {guardando ? "Guardando..." : esEdicion ? "Guardar cambios" : "Crear criatura"}
           </button>
-        </p>
+        </div>
       </form>
     </div>
   );
